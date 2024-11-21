@@ -1,113 +1,95 @@
-$(function () {
-    // Khai báo các object
+$(document).ready(function () {
     var container = $('#container');
     var bird = $('#bird');
     var pole = $('.pole');
     var pole_1 = $('#pole_1');
     var pole_2 = $('#pole_2');
     var score = $('#score');
+    var restart_btn = $("#restart_btn");
 
-    // Chuyển các thông tin của object sang dạng số INT
     var container_width = parseInt(container.width());
     var container_height = parseInt(container.height());
-    var pole_initial_position = parseInt(pole.css('right'));
-    var pole_initial_height = parseInt(pole.css('height'));
+    var pole_initial_pos = parseInt(pole.css('right'));
+    var pole_initial_height = 150;
     var bird_left = parseInt(bird.css('left'));
     var bird_height = parseInt(bird.height());
-    var speed = 10; // Tốc độ di chuyển ống nước
+    var speed = 10;
 
-    // Một số trạng thái trong game
     var go_up = false;
     var score_updated = false;
-    var game_over = false;
+    var gameOver = false;
 
-    // Hàm bắt đầu game
-    function playGame() {
-        // Realtime cho game 
-        var the_game = setInterval(function () {
-            if (collision(bird, pole_1) || // Nếu chú chim va chạm với ống trên
-                collision(bird, pole_2) || // Hoặc chú chim va chạm với ông dưới
-                parseInt(bird.css('top')) <= 0 || // Hoặc chú chim va chạp với khung game trên
-                parseInt(bird.css('top')) > container_height - bird_height // Hoặc chú chim va chạm với khung game dưới
-            ) {
-                stop_the_game(); // Chạy hàm thua game
-            }
-            else {
-                // Lấy vị trị hiện tại của ống nước
-                var pole_current_position = parseInt(pole.css('right'));
-                // Cập nhập điểm khi chú chim vượt qua 1 cặp ống
-                if (pole_current_position > container_width - bird_left) {
-                    if (score_updated === false) {
-                        score.text(parseInt(score.text()) + 1); // Cộng 1 điểm
-                        score_updated = true;
-                    }
-                }
+    var the_game = setInterval(function () {
+        if (collision(bird, pole_1) || collision(bird, pole_2) || parseInt(bird.css('top')) <= 0 || parseInt(bird.css('top')) > container_height - bird_height) {
+            stopGame();
+        } else {
+            var pole_current_pos = parseInt(pole.css('right'));
 
-                // Kiểm tra các ống đã đi ra khỏi khung game 
-                if (pole_current_position > container_width) {
-                    var new_height = parseInt(Math.random() * 100);
-                    // Tạo chiều cao các ống nước ngẫu nhiên
-                    pole_1.css('height', pole_initial_height + new_height);
-                    pole_2.css('height', pole_initial_height - new_height);
-                    score_updated = false;
-                    pole_current_position = pole_initial_position; // Gán vị trị hiện tại = vị trí ban đầu của ống nước
-                }
-
-                // Di chuyển ống nước
-                pole.css('right', pole_current_position + speed);
-
-                // Nếu không điều khiển chú chim bay lên
-                if (go_up === false) {
-                    go_down(); // Hàm di chuyển chú chim rơi xuống
+            if (pole_current_pos > container_width - bird_left) {
+                if (score_updated === false) {
+                    var newScore = parseInt(score.text()) + 1;
+                    score.text(newScore);
+                    score_updated = true;
                 }
             }
-        }, 40);
-    }
 
-    // Khi nhả chuột ra trong khung game
-    $('#container').mouseup(function (e) {
-        clearInterval(go_up); // Xoá realtime hành động bay lên cho chú chim
-        go_up = false;
+            if (pole_current_pos > container_width) {
+                var new_height = Math.floor(Math.random() * 150) + 50; // Random height between 50 and 200
+                var gap = 150; // Adjusted gap between poles
+
+                pole_1.css('height', new_height);
+                pole_2.css('height', container_height - new_height - gap);
+
+                score_updated = false;
+                pole_current_pos = pole_initial_pos;
+                speed = speed + 3;
+            }
+
+            pole.css('right', pole_current_pos + speed);
+
+            if (go_up === false) {
+                go_down();
+            }
+        }
+    }, 40);
+
+    $(document).on("keydown", function (e) {
+        var key = e.keyCode;
+        if ((key === 32 || key === 40) && gameOver === false && go_up === false) {
+            go_up = setInterval(up, 50);
+        }
     });
 
-    // Khi nhấp chuột vào trong khung game
-    $('#container').mousedown(function (e) {
-        go_up = setInterval(up, 40); // Realtime hành động bay lên cho chú chim
+    $(document).on("keyup", function (e) {
+        var key = e.keyCode;
+        if ((key === 32 || key === 40) && gameOver === false) {
+            clearInterval(go_up);
+            go_up = false;
+        }
     });
 
-    // Khi nhấn vào Chơi game
-    $('#play_btn').click(function () {
-        playGame(); // Chạy hàm bắt đầu chơi game
-        $(this).hide(); // Ẩn nút chơi game
+    $(document).on("mousedown", function () {
+        if (gameOver === false && go_up === false) {
+            go_up = setInterval(up, 50);
+        }
     });
 
-    // Hàm di chuyển chú chim rơi xuống
+    $(document).on("mouseup", function () {
+        if (gameOver === false) {
+            clearInterval(go_up);
+            go_up = false;
+        }
+    });
+
     function go_down() {
-        bird.css('top', parseInt(bird.css('top')) + 10);
-        bird.css('transform', 'rotate(50deg)'); // Nghiêng object chú chim 50 độ
+        bird.css('top', parseInt(bird.css('top')) + 10); // Adjusted downward speed
     }
 
-    // Hàm di chuyển chú chim bay lên
     function up() {
-        bird.css('top', parseInt(bird.css('top')) - 20);
-        bird.css('transform', 'rotate(-10deg)'); // Nghiêng object chú chim -10 độ
+        bird.css('top', parseInt(bird.css('top')) - 10); // Adjusted upward speed
     }
 
-    // Hàm thua game
-    function stop_the_game() {
-        clearInterval(playGame()); // Xoá realtime chơi game
-        game_over = true;
-        $('#restart_btn').slideDown(); // Hiện nút chơi lại
-    }
-
-    // Khi click vào nút Chơi lại
-    $('#restart_btn').click(function () {
-        location.reload(); // Tải lại trang
-    });
-
-    // Hàm va chạm giữa 2 object
     function collision($div1, $div2) {
-        // Khai báo các thông số của 2 object
         var x1 = $div1.offset().left;
         var y1 = $div1.offset().top;
         var h1 = $div1.outerHeight(true);
@@ -122,13 +104,20 @@ $(function () {
         var b2 = y2 + h2;
         var r2 = x2 + w2;
 
-        // Nếu xảy ra va chạm
         if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) {
             return false;
-        }
-        // Ngược lại không va chạm
-        else {
+        } else {
             return true;
         }
     }
+
+    function stopGame() {
+        clearInterval(the_game);
+        restart_btn.fadeToggle(200);
+        gameOver = true;
+    }
+
+    $(restart_btn).on("click", function () {
+        location.reload();
+    });
 });
