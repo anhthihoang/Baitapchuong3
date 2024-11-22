@@ -33,7 +33,7 @@ body, html {
     position: absolute;
     height: 170px;
     width: 60px;
-    background-color: #33cc33;
+    background-color: #9A7E6F;
     right: -64px;
     border: 2px solid #000;
 }
@@ -62,15 +62,23 @@ body, html {
 
 /* Nút chơi lại */
 #restart_btn {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    padding: 20px;
-    background-color: #fff;
-    color: #555;
-    font-size: 35px;
-    border: none;
-    cursor: pointer;
     display: none;
-    border: 1px solid #e5e5e5;
+    position: absolute;
+    padding: 10px 20px;
+    background-color: #f00;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
 }
+
+/*Đồng xu*/
+#coin {
+    width: 20px;
+    height: 20px;
+    background-color: gold;
+    border-radius: 50%;
+    position: absolute;
+}
+
